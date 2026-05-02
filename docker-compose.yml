@@ -1,6 +1,5 @@
 services:
     api:
-        container_name: api
         build: ./app
         image: exchange-img:latest
         environment:
@@ -8,6 +7,8 @@ services:
         depends_on:
             redis:
                 condition: service_healthy
+        deploy:
+            replicas: 3
 
     nginx:
         container_name: exchange-nginx
