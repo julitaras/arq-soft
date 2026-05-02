@@ -1,0 +1,30 @@
+config:
+  environments:
+    api:
+      target: 'http://localhost:5555'
+      plugins:
+        statsd:
+          host: localhost
+          port: 8125
+          prefix: "artillery-api"
+
+  pool: 25 # All HTTP requests from all virtual users will be sent over the same connections
+
+  phases:
+    - name: Light Monitoring
+      duration: 50
+      arrivalRate: 3
+    - name: Troubleshooting Spike
+      duration: 20
+      arrivalRate: 12
+    - name: Back to Normal
+      duration: 30
+      arrivalRate: 3
+    
+
+scenarios:
+  - name: Get Log (/log) - Monitoreo ligero con pico de troubleshooting
+    flow:
+      - get:
+          url: '/log'
+

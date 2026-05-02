@@ -1,0 +1,37 @@
+config:
+  environments:
+    api:
+      target: 'http://localhost:5555'
+      plugins:
+        statsd:
+          host: localhost
+          port: 8125
+          prefix: "artillery-api"
+
+  pool: 30 # All HTTP requests from all virtual users will be sent over the same connections
+
+  phases:
+    - name: Low Steady
+      duration: 40
+      arrivalRate: 2
+    - name: Batch Update Burst
+      duration: 15
+      arrivalRate: 2
+      rampTo: 8
+    - name: Cool Down
+      duration: 25
+      arrivalRate: 1
+    
+
+scenarios:
+  - name: Update Account Balance (/accounts/:id/balance) - Escritura con ráfagas
+    flow:
+      - put:
+          url: '/accounts/1/balance'
+          json:
+            balance: 2000000
+          
+  # Variables a completar:
+  # - accountId: ID de la cuenta (ej: 1, 10, 11)
+  # - balance: Balance a establecer (ej: 1000000)
+

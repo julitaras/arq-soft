@@ -1,0 +1,33 @@
+config:
+  environments:
+    api:
+      target: 'http://localhost:5555'
+      plugins:
+        statsd:
+          host: localhost
+          port: 8125
+          prefix: "artillery-api"
+
+  pool: 50 # All HTTP requests from all virtual users will be sent over the same connections
+
+  phases:
+    - name: Warmup
+      duration: 10
+      arrivalRate: 2
+    - name: Sustained Load
+      duration: 60
+      arrivalRate: 10
+    - name: Traffic Spike
+      duration: 20
+      arrivalRate: 25
+    - name: Recovery
+      duration: 30
+      arrivalRate: 5
+    
+
+scenarios:
+  - name: Get Accounts (/accounts) - Lectura frecuente con picos
+    flow:
+      - get:
+          url: '/accounts'
+

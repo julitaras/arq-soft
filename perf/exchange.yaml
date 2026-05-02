@@ -1,0 +1,51 @@
+config:
+  environments:
+    api:
+      target: 'http://localhost:5555'
+      plugins:
+        statsd:
+          host: localhost
+          port: 8125
+          prefix: "artillery-api"
+
+  pool: 60 # All HTTP requests from all virtual users will be sent over the same connections
+
+  phases:
+    - name: Early Morning
+      duration: 20
+      arrivalRate: 2
+    - name: Business Hours Ramp
+      duration: 40
+      arrivalRate: 3
+      rampTo: 15
+    - name: Peak Trading
+      duration: 60
+      arrivalRate: 15
+    - name: Afternoon Decline
+      duration: 30
+      arrivalRate: 15
+      rampTo: 5
+    - name: Evening Low
+      duration: 20
+      arrivalRate: 2
+    
+
+scenarios:
+  - name: Exchange (/exchange) - Simula patrón de trading diario
+    flow:
+      - post:
+          url: '/exchange'
+          json:
+            baseCurrency: "ARS"
+            counterCurrency: "USD"
+            baseAmount: 100.0
+            baseAccountId: 11
+            counterAccountId: 10
+          
+  # Variables a completar:
+  # - baseCurrency: Moneda base (ej: "USD", "EUR")
+  # - counterCurrency: Moneda de contrapartida (ej: "ARS", "BRL")
+  # - baseAmount: Monto a intercambiar (ej: 100.0)
+  # - baseAccountId: ID de la cuenta origen (ej: 11)
+  # - counterAccountId: ID de la cuenta destino (ej: 10)
+
