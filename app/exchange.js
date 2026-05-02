@@ -8,6 +8,7 @@ import {
   setRates as stateSetRates,
   getLog as stateGetLog,
   appendLog,
+  atomicFundsTransfer,
 } from "./persistence.js";
 
 export async function init() {
@@ -72,11 +73,16 @@ export async function exchange(exchangeRequest) {
   if (counterAccount.balance >= counterAmount) {
     if (await transfer(clientBaseAccountId, baseAccount.id, baseAmount)) {
       if (await transfer(counterAccount.id, clientCounterAccountId, counterAmount)) {
-        baseAccount.balance += baseAmount;
-        counterAccount.balance -= counterAmount;
-        await stateSetAccounts(accounts);
-        exchangeResult.ok = true;
-        exchangeResult.counterAmount = counterAmount;
+        const { ok } = await atomicFundsTransfer(
+          baseCurrency, counterCurrency, baseAmount, counterAmount
+        );
+        if (ok) {
+          exchangeResult.ok = true;
+          exchangeResult.counterAmount = counterAmount;
+        } else {
+          await transfer(counterAccount.id, clientBaseAccountId, baseAmount);
+          exchangeResult.obs = "Not enough funds on counter currency account";
+        }
       } else {
         await transfer(baseAccount.id, clientBaseAccountId, baseAmount);
         exchangeResult.obs = "Could not transfer to clients' account";

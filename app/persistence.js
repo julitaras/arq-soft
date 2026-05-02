@@ -1,6 +1,6 @@
 import { createClient } from "redis";
 
-const REDIS_URL = process.env.REDIS_URL || "redis://exchange-redis:6379";
+const REDIS_URL = process.env.REDIS_URL || "redis://redis:6379";
 
 export const KEYS = {
   accounts: "state:accounts",
@@ -40,4 +40,36 @@ export async function getLog() {
 
 export async function appendLog(entry) {
   await client.rPush(KEYS.log, JSON.stringify(entry));
+}
+
+const EXCHANGE_ACCOUNTS_SCRIPT = `
+local accounts = cjson.decode(redis.call('GET', KEYS[1]))
+local baseCurrency = ARGV[1]
+local counterCurrency = ARGV[2]
+local baseAmount = tonumber(ARGV[3])
+local counterAmount = tonumber(ARGV[4])
+local baseAcc = nil
+local counterAcc = nil
+for _, acc in ipairs(accounts) do
+  if acc['currency'] == baseCurrency then baseAcc = acc end
+  if acc['currency'] == counterCurrency then counterAcc = acc end
+end
+if counterAcc == nil or baseAcc == nil then
+  return redis.error_reply('Account not found')
+end
+if counterAcc['balance'] < counterAmount then
+  return cjson.encode({ok = false})
+end
+baseAcc['balance'] = baseAcc['balance'] + baseAmount
+counterAcc['balance'] = counterAcc['balance'] - counterAmount
+redis.call('SET', KEYS[1], cjson.encode(accounts))
+return cjson.encode({ok = true})
+`;
+
+export async function atomicFundsTransfer(baseCurrency, counterCurrency, baseAmount, counterAmount) {
+  const result = await client.eval(EXCHANGE_ACCOUNTS_SCRIPT, {
+    keys: [KEYS.accounts],
+    arguments: [baseCurrency, counterCurrency, String(baseAmount), String(counterAmount)],
+  });
+  return JSON.parse(result);
 }
