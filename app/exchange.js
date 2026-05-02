@@ -77,36 +77,36 @@ export async function exchange(exchangeRequest) {
     obs: null,
   };
 
-  //check if we have funds on the counter currency account
-  if (counterAccount.balance >= counterAmount) {
-    //try to transfer from clients' base account
-    if (await transfer(clientBaseAccountId, baseAccount.id, baseAmount)) {
-      //try to transfer to clients' counter account
-      if (
-        await transfer(counterAccount.id, clientCounterAccountId, counterAmount)
-      ) {
-        //all good, update balances
-        baseAccount.balance += baseAmount;
-        counterAccount.balance -= counterAmount;
-        exchangeResult.ok = true;
-        exchangeResult.counterAmount = counterAmount;
-      } else {
-        //could not transfer to clients' counter account, return base amount to client
-        await transfer(baseAccount.id, clientBaseAccountId, baseAmount);
-        exchangeResult.obs = "Could not transfer to clients' account";
-      }
+  // Check and reserve atomically — no await between these two lines, so no
+  // other request can observe the old balance and also pass the check.
+  if (counterAccount.balance < counterAmount) {
+    exchangeResult.obs = "Not enough funds on counter currency account";
+    log.push(exchangeResult);
+    return exchangeResult;
+  }
+  counterAccount.balance -= counterAmount; // reserve
+
+  if (await transfer(clientBaseAccountId, baseAccount.id, baseAmount)) {
+    if (
+      await transfer(counterAccount.id, clientCounterAccountId, counterAmount)
+    ) {
+      // Both transfers succeeded — commit: record base amount received
+      baseAccount.balance += baseAmount;
+      exchangeResult.ok = true;
+      exchangeResult.counterAmount = counterAmount;
     } else {
-      //could not withdraw from clients' account
-      exchangeResult.obs = "Could not withdraw from clients' account";
+      // Second transfer failed — rollback: reverse first transfer and release reservation
+      await transfer(baseAccount.id, clientBaseAccountId, baseAmount);
+      counterAccount.balance += counterAmount;
+      exchangeResult.obs = "Could not transfer to clients' account";
     }
   } else {
-    //not enough funds on internal counter account
-    exchangeResult.obs = "Not enough funds on counter currency account";
+    // First transfer failed — rollback: release reservation
+    counterAccount.balance += counterAmount;
+    exchangeResult.obs = "Could not withdraw from clients' account";
   }
 
-  //log the transaction and return it
   log.push(exchangeResult);
-
   return exchangeResult;
 }
 
