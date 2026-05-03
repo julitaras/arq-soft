@@ -46,7 +46,6 @@ services:
         image: exchange-redis:custom
         volumes:
             - redis_data:/data
-        command: redis-server --appendonly yes
         healthcheck:
             test: [ "CMD", "redis-cli", "ping" ]
             interval: 5s
