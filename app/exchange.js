@@ -52,8 +52,7 @@ export async function exchange(exchangeRequest) {
     baseAmount,
   } = exchangeRequest;
 
-  const rates = await stateGetRates();
-  const accounts = await stateGetAccounts();
+  const [rates, accounts] = await Promise.all([stateGetRates(), stateGetAccounts()]);
 
   const exchangeRate = rates[baseCurrency][counterCurrency];
   const counterAmount = baseAmount * exchangeRate;
@@ -71,8 +70,11 @@ export async function exchange(exchangeRequest) {
   };
 
   if (counterAccount.balance >= counterAmount) {
-    if (await transfer(clientBaseAccountId, baseAccount.id, baseAmount)) {
-      if (await transfer(counterAccount.id, clientCounterAccountId, counterAmount)) {
+    const [t1, t2] = await Promise.all([
+      transfer(clientBaseAccountId, baseAccount.id, baseAmount),
+      transfer(counterAccount.id, clientCounterAccountId, counterAmount),
+    ]);
+    if (t1 && t2) {
         const { ok } = await atomicFundsTransfer(
           baseCurrency, counterCurrency, baseAmount, counterAmount
         );
@@ -83,12 +85,8 @@ export async function exchange(exchangeRequest) {
           await transfer(counterAccount.id, clientBaseAccountId, baseAmount);
           exchangeResult.obs = "Not enough funds on counter currency account";
         }
-      } else {
-        await transfer(baseAccount.id, clientBaseAccountId, baseAmount);
-        exchangeResult.obs = "Could not transfer to clients' account";
-      }
     } else {
-      exchangeResult.obs = "Could not withdraw from clients' account";
+      exchangeResult.obs = "Could not complete transfers";
     }
   } else {
     exchangeResult.obs = "Not enough funds on counter currency account";
