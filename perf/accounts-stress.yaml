@@ -27,13 +27,7 @@ config:
       arrivalRate: 1
 
 scenarios:
-  - name: Exchange (/exchange)
+  - name: Get Accounts (/accounts)
     flow:
-      - post:
-          url: '/exchange'
-          json:
-            baseCurrency: "ARS"
-            counterCurrency: "USD"
-            baseAmount: 100.0
-            baseAccountId: 11
-            counterAccountId: 10
+      - get:
+          url: '/accounts'

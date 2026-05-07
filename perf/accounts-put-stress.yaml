@@ -27,13 +27,13 @@ config:
       arrivalRate: 1
 
 scenarios:
-  - name: Exchange (/exchange)
+  - name: Update Account Balance (/accounts/:id/balance)
     flow:
-      - post:
-          url: '/exchange'
+      - put:
+          url: '/accounts/1/balance'
           json:
-            baseCurrency: "ARS"
-            counterCurrency: "USD"
-            baseAmount: 100.0
-            baseAccountId: 11
-            counterAccountId: 10
+            balance: 2000000
+
+  # Variables a completar:
+  # - accountId: ID de la cuenta (ej: 1, 10, 11)
+  # - balance: Balance a establecer (ej: 1000000)

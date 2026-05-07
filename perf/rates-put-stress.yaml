@@ -27,13 +27,11 @@ config:
       arrivalRate: 1
 
 scenarios:
-  - name: Exchange (/exchange)
+  - name: Update Rate (/rates)
     flow:
-      - post:
-          url: '/exchange'
+      - put:
+          url: '/rates'
           json:
-            baseCurrency: "ARS"
-            counterCurrency: "USD"
-            baseAmount: 100.0
-            baseAccountId: 11
-            counterAccountId: 10
+            baseCurrency: "USD"
+            counterCurrency: "ARS"
+            rate: 1064
