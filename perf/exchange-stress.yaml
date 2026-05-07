@@ -6,29 +6,25 @@ config:
         statsd:
           host: localhost
           port: 8125
-          prefix: "artillery-stress"
+          prefix: "artillery-api"
 
   pool: 300
 
   phases:
-    - name: Warmup
+    - name: Ramp Up Extreme
       duration: 30
-      arrivalRate: 5
-      rampTo: 50
-    - name: Sustained
-      duration: 60
-      arrivalRate: 50
-    - name: Stress Ramp
-      duration: 60
-      arrivalRate: 50
-      rampTo: 200
-    - name: Peak Load
-      duration: 60
-      arrivalRate: 200
-    - name: Cool Down
+      arrivalRate: 100
+      rampTo: 500
+    - name: Plain Extreme
       duration: 30
-      arrivalRate: 200
-      rampTo: 10
+      arrivalRate: 600
+    - name: Ramp Down Extreme
+      duration: 30
+      arrivalRate: 500
+      rampTo: 100
+    - name: Stop
+      duration: 20
+      arrivalRate: 1
 
 before:
   flow:
