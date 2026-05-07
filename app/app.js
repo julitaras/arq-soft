@@ -118,7 +118,6 @@ app.post("/exchange", postLimiter, async (req, res) => {
   const exchangeResult = await exchange({ ...req.body });
 
   if (exchangeResult.ok) {
-    const { baseCurrency, counterCurrency, baseAmount } = exchangeRequest;
     const counterAmount = exchangeResult.counterAmount;
 
     sendStatsd(`business.volume.${baseCurrency}`, baseAmount);
