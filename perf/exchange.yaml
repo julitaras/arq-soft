@@ -39,9 +39,9 @@ scenarios:
             baseCurrency: "ARS"
             counterCurrency: "USD"
             baseAmount: 100.0
-            baseAccountId: 11
-            counterAccountId: 10
-          
+            baseAccountId: 1
+            counterAccountId: 2
+
   # Variables a completar:
   # - baseCurrency: Moneda base (ej: "USD", "EUR")
   # - counterCurrency: Moneda de contrapartida (ej: "ARS", "BRL")

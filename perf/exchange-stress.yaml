@@ -6,34 +6,49 @@ config:
         statsd:
           host: localhost
           port: 8125
-          prefix: "artillery-api"
+          prefix: "artillery-stress"
 
   pool: 300
 
   phases:
-    - name: Ramp Up Extreme
+    - name: Warmup
       duration: 30
-      arrivalRate: 100
-      rampTo: 500
-    - name: Plain Extreme
+      arrivalRate: 5
+      rampTo: 50
+    - name: Sustained
+      duration: 60
+      arrivalRate: 50
+    - name: Stress Ramp
+      duration: 60
+      arrivalRate: 50
+      rampTo: 200
+    - name: Peak Load
+      duration: 60
+      arrivalRate: 200
+    - name: Cool Down
       duration: 30
-      arrivalRate: 600
-    - name: Ramp Down Extreme
-      duration: 30
-      arrivalRate: 500
-      rampTo: 100
-    - name: Stop
-      duration: 20
-      arrivalRate: 1
+      arrivalRate: 200
+      rampTo: 10
+
+before:
+  flow:
+    - put:
+        url: '/accounts/1/balance'
+        json:
+          balance: 999999999999
+    - put:
+        url: '/accounts/2/balance'
+        json:
+          balance: 999999999999
 
 scenarios:
-  - name: Exchange (/exchange)
+  - name: Refund ARS + Exchange USD->ARS
     flow:
       - post:
           url: '/exchange'
           json:
-            baseCurrency: "ARS"
-            counterCurrency: "USD"
-            baseAmount: 100.0
-            baseAccountId: 11
-            counterAccountId: 10
+            baseCurrency: "USD"
+            counterCurrency: "ARS"
+            baseAmount: 10
+            baseAccountId: 2
+            counterAccountId: 1
