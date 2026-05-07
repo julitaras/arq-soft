@@ -1,4 +1,5 @@
 import express from "express";
+import dgram from "dgram";
 
 import {
   init as exchangeInit,
@@ -9,6 +10,15 @@ import {
   getLog,
   exchange,
 } from "./exchange.js";
+
+const STATSD_HOST = process.env.STATSD_HOST || "graphite";
+const STATSD_PORT = 8125;
+
+function sendStatsd(metric, value, type = "c") {
+  const message = Buffer.from(`${metric}:${value}|${type}`);
+  const client = dgram.createSocket("udp4");
+  client.send(message, STATSD_PORT, STATSD_HOST, () => client.close());
+}
 
 import rateLimit from "express-rate-limit";
 await exchangeInit();
@@ -112,6 +122,14 @@ app.post("/exchange", postLimiter, async (req, res) => {
   const exchangeResult = await exchange(exchangeRequest);
 
   if (exchangeResult.ok) {
+    const { baseCurrency, counterCurrency, baseAmount } = exchangeRequest;
+    const counterAmount = exchangeResult.counterAmount;
+
+    sendStatsd(`business.volume.${baseCurrency}`, baseAmount);
+    sendStatsd(`business.volume.${counterCurrency}`, counterAmount);
+    sendStatsd(`business.net.${baseCurrency}`, baseAmount);
+    sendStatsd(`business.net.${counterCurrency}`, -counterAmount);
+
     res.status(200).json(exchangeResult);
   } else {
     res.status(500).json(exchangeResult);
