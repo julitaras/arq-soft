@@ -29,3 +29,7 @@ Para ubicar rápidamente cada implementación, las tácticas del informe quedaro
 - Táctica 1, Transactions: `prevent-faults-with-transactions`
 - Táctica 2, Limit Access: `limit-access`
 - Táctica (3, 4, 5) Distributed State Cache , Scale out not up, Introduce Concurrency: `add-concurrency`
+
+## Business metrics
+
+- Aplicado en la rama `business-metrics`
