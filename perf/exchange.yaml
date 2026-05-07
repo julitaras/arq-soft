@@ -28,7 +28,17 @@ config:
     - name: Evening Low
       duration: 20
       arrivalRate: 2
-    
+
+before:
+  flow:
+    - put:
+        url: '/accounts/1/balance'
+        json:
+          balance: 999999999999
+    - put:
+        url: '/accounts/2/balance'
+        json:
+          balance: 999999999999
 
 scenarios:
   - name: Exchange (/exchange) - Simula patrón de trading diario
@@ -39,9 +49,9 @@ scenarios:
             baseCurrency: "ARS"
             counterCurrency: "USD"
             baseAmount: 100.0
-            baseAccountId: 11
-            counterAccountId: 10
-          
+            baseAccountId: 1
+            counterAccountId: 2
+
   # Variables a completar:
   # - baseCurrency: Moneda base (ej: "USD", "EUR")
   # - counterCurrency: Moneda de contrapartida (ej: "ARS", "BRL")

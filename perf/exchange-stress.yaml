@@ -26,14 +26,25 @@ config:
       duration: 20
       arrivalRate: 1
 
+before:
+  flow:
+    - put:
+        url: '/accounts/1/balance'
+        json:
+          balance: 999999999999
+    - put:
+        url: '/accounts/2/balance'
+        json:
+          balance: 999999999999
+
 scenarios:
-  - name: Exchange (/exchange)
+  - name: Refund ARS + Exchange USD->ARS
     flow:
       - post:
           url: '/exchange'
           json:
-            baseCurrency: "ARS"
-            counterCurrency: "USD"
-            baseAmount: 100.0
-            baseAccountId: 11
-            counterAccountId: 10
+            baseCurrency: "USD"
+            counterCurrency: "ARS"
+            baseAmount: 10
+            baseAccountId: 2
+            counterAccountId: 1
