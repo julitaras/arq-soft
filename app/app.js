@@ -56,46 +56,43 @@ const postLimiter = rateLimit({
 
 // ACCOUNT endpoints
 
-app.get("/accounts", getLimiter, (req, res) => {
-  res.json(getAccounts());
+app.get("/accounts", async (req, res) => {
+  res.json(await getAccounts());
 });
 
-app.put("/accounts/:id/balance", putLimiter, (req, res) => {
+app.put("/accounts/:id/balance", async (req, res) => {
   const accountId = req.params.id;
   const { balance } = req.body;
 
   if (!accountId || !balance) {
     return res.status(400).json({ error: "Malformed request" });
   } else {
-    setAccountBalance(accountId, balance);
-
-    res.json(getAccounts());
+    await setAccountBalance(accountId, balance);
+    res.json(await getAccounts());
   }
 });
 
 // RATE endpoints
 
-app.get("/rates", getLimiter, (req, res) => {
-  res.json(getRates());
+app.get("/rates", async (req, res) => {
+  res.json(await getRates());
 });
 
-app.put("/rates", putLimiter, (req, res) => {
+app.put("/rates", async (req, res) => {
   const { baseCurrency, counterCurrency, rate } = req.body;
 
   if (!baseCurrency || !counterCurrency || !rate) {
     return res.status(400).json({ error: "Malformed request" });
   }
 
-  const newRateRequest = { ...req.body };
-  setRate(newRateRequest);
-
-  res.json(getRates());
+  await setRate({ ...req.body });
+  res.json(await getRates());
 });
 
 // LOG endpoint
 
-app.get("/log", getLimiter, (req, res) => {
-  res.json(getLog());
+app.get("/log", async (req, res) => {
+  res.json(await getLog());
 });
 
 // EXCHANGE endpoint
@@ -118,8 +115,7 @@ app.post("/exchange", postLimiter, async (req, res) => {
     return res.status(400).json({ error: "Malformed request" });
   }
 
-  const exchangeRequest = { ...req.body };
-  const exchangeResult = await exchange(exchangeRequest);
+  const exchangeResult = await exchange({ ...req.body });
 
   if (exchangeResult.ok) {
     const { baseCurrency, counterCurrency, baseAmount } = exchangeRequest;

@@ -1,0 +1,48 @@
+config:
+  environments:
+    api:
+      target: 'http://localhost:5555'
+      plugins:
+        statsd:
+          host: localhost
+          port: 8125
+          prefix: "artillery-stress"
+
+  pool: 300
+
+  phases:
+    - name: Warmup
+      duration: 30
+      arrivalRate: 5
+      rampTo: 50
+    - name: Sustained
+      duration: 60
+      arrivalRate: 50
+    - name: Stress Ramp
+      duration: 60
+      arrivalRate: 50
+      rampTo: 200
+    - name: Peak Load
+      duration: 60
+      arrivalRate: 200
+    - name: Cool Down
+      duration: 30
+      arrivalRate: 200
+      rampTo: 10
+
+scenarios:
+  - name: Refund ARS + Exchange USD->ARS
+    flow:
+      - put:
+          url: '/accounts/1/balance'
+          json:
+            balance: 999999999
+      - post:
+          url: '/exchange'
+          json:
+            baseCurrency: "USD"
+            counterCurrency: "ARS"
+            baseAmount: 100
+            baseAccountId: 2
+            counterAccountId: 1
+

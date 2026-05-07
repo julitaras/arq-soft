@@ -1,8 +1,17 @@
 services:
     api:
-      build: ./app
+        build: ./app
+        image: exchange-img:latest
+        environment:
+            - REDIS_URL=redis://redis:6379
+        depends_on:
+            redis:
+                condition: service_healthy
+        deploy:
+            replicas: 3
 
     nginx:
+        container_name: exchange-nginx
         image: nginx:1.29.8
         ports:
             - "5555:80"
@@ -13,6 +22,7 @@ services:
             - api
 
     graphite:
+        container_name: exchange-graphite
         image: graphiteapp/graphite-statsd:1.1.10-5
         volumes:
             - ./statsd.config.json:/opt/statsd/config/udp.js
@@ -23,13 +33,28 @@ services:
             - "8126:8126"
 
     grafana:
+        container_name: exchange-grafana
         image: grafana/grafana:11.5.10
         ports:
             - "80:3000"
         volumes:
             - "grafana_config:/var/lib/grafana"
 
+    redis:
+        container_name: exchange-redis
+        build: ./redis
+        image: exchange-redis:custom
+        volumes:
+            - redis_data:/data
+        healthcheck:
+            test: [ "CMD", "redis-cli", "ping" ]
+            interval: 5s
+            timeout: 3s
+            retries: 5
+            start_period: 5s
+
     cadvisor:
+        container_name: exchange-cadvisor
         image: gcr.io/cadvisor/cadvisor:v0.51.0
         links:
             - graphite
@@ -44,4 +69,6 @@ services:
 
 volumes:
     grafana_config:
+        driver: local
+    redis_data:
         driver: local
