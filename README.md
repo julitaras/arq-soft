@@ -3,7 +3,7 @@ Repo para TP de arqui de software (TB034).
 
 - Repo de la catedra: https://github.com/fiuba-arq-soft/1c26-tp-1
 - Consigna en [archivo](CONSIGNA.md)
-- Informe en ``
+- Informe en `Trabajo Practico 1.pdf`
 
 ## Cómo correr la app
 
