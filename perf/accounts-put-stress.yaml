@@ -1,0 +1,39 @@
+config:
+  environments:
+    api:
+      target: 'http://localhost:5555'
+      plugins:
+        statsd:
+          host: localhost
+          port: 8125
+          prefix: "artillery-api"
+
+  pool: 300
+
+  phases:
+    - name: Ramp Up Extreme
+      duration: 30
+      arrivalRate: 100
+      rampTo: 500
+    - name: Plain Extreme
+      duration: 30
+      arrivalRate: 600
+    - name: Ramp Down Extreme
+      duration: 30
+      arrivalRate: 500
+      rampTo: 100
+    - name: Stop
+      duration: 20
+      arrivalRate: 1
+
+scenarios:
+  - name: Update Account Balance (/accounts/:id/balance)
+    flow:
+      - put:
+          url: '/accounts/1/balance'
+          json:
+            balance: 2000000
+
+  # Variables a completar:
+  # - accountId: ID de la cuenta (ej: 1, 10, 11)
+  # - balance: Balance a establecer (ej: 1000000)

@@ -1,0 +1,39 @@
+config:
+  environments:
+    api:
+      target: 'http://localhost:5555'
+      plugins:
+        statsd:
+          host: localhost
+          port: 8125
+          prefix: "artillery-api"
+
+  pool: 300
+
+  phases:
+    - name: Ramp Up Extreme
+      duration: 30
+      arrivalRate: 100
+      rampTo: 500
+    - name: Plain Extreme
+      duration: 30
+      arrivalRate: 600
+    - name: Ramp Down Extreme
+      duration: 30
+      arrivalRate: 500
+      rampTo: 100
+    - name: Stop
+      duration: 20
+      arrivalRate: 1
+
+scenarios:
+  - name: Exchange (/exchange)
+    flow:
+      - post:
+          url: '/exchange'
+          json:
+            baseCurrency: "ARS"
+            counterCurrency: "USD"
+            baseAmount: 100.0
+            baseAccountId: 11
+            counterAccountId: 10
