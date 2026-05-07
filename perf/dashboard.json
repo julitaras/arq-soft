@@ -51,7 +51,7 @@
         "min": false,
         "rightSide": true,
         "show": true,
-        "sideWidth": 250,
+        "sideWidth": 600,
         "total": false,
         "values": true
       },
@@ -159,7 +159,7 @@
         "min": false,
         "rightSide": true,
         "show": true,
-        "sideWidth": 250,
+        "sideWidth": 600,
         "total": false,
         "values": true
       },
@@ -272,7 +272,7 @@
         "min": false,
         "rightSide": true,
         "show": true,
-        "sideWidth": 250,
+        "sideWidth": 600,
         "total": false,
         "values": true
       },
@@ -381,7 +381,7 @@
         "min": false,
         "rightSide": true,
         "show": true,
-        "sideWidth": 250,
+        "sideWidth": 600,
         "total": false,
         "values": true
       },
@@ -425,7 +425,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Resources",
+      "title": "Resources (por container: $container)",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -454,6 +454,176 @@
           "logBase": 1,
           "max": null,
           "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    }
+    ,
+    {
+      "aliasColors": {
+        "CPU Total": "#E24D42",
+        "CPU api-1": "#7EB26D",
+        "CPU api-2": "#EAB839",
+        "CPU api-3": "#6ED0E0",
+        "RAM Total": "#B877D9",
+        "RAM api-1": "#1F78C1",
+        "RAM api-2": "#0A50A1",
+        "RAM api-3": "#052B51"
+      },
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Graphite",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "height": "250px",
+      "hiddenSeries": false,
+      "id": 6,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": true,
+        "hideEmpty": true,
+        "hideZero": false,
+        "max": true,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sideWidth": 600,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 2,
+      "links": [],
+      "nullPointMode": "connected",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.10",
+      "pointradius": 3,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "CPU Total",
+          "linewidth": 3,
+          "fill": 2
+        },
+        {
+          "alias": "RAM Total",
+          "linewidth": 3,
+          "fill": 2,
+          "yaxis": 2
+        },
+        {
+          "alias": "RAM api-1",
+          "yaxis": 2
+        },
+        {
+          "alias": "RAM api-2",
+          "yaxis": 2
+        },
+        {
+          "alias": "RAM api-3",
+          "yaxis": 2
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "refId": "A",
+          "target": "alias(removeBelowValue(asPercent(sumSeries(derivative(keepLastValue(stats.gauges.cadvisor.exchange-api-*.cpu_cumulative_usage, 100))), 10000000000), 0.0001), 'CPU Total')",
+          "textEditor": true
+        },
+        {
+          "refId": "B",
+          "target": "alias(removeBelowValue(asPercent(derivative(keepLastValue(stats.gauges.cadvisor.exchange-api-1.cpu_cumulative_usage, 100)), 10000000000), 0.0001), 'CPU api-1')",
+          "textEditor": true
+        },
+        {
+          "refId": "C",
+          "target": "alias(removeBelowValue(asPercent(derivative(keepLastValue(stats.gauges.cadvisor.exchange-api-2.cpu_cumulative_usage, 100)), 10000000000), 0.0001), 'CPU api-2')",
+          "textEditor": true
+        },
+        {
+          "refId": "D",
+          "target": "alias(removeBelowValue(asPercent(derivative(keepLastValue(stats.gauges.cadvisor.exchange-api-3.cpu_cumulative_usage, 100)), 10000000000), 0.0001), 'CPU api-3')",
+          "textEditor": true
+        },
+        {
+          "refId": "E",
+          "target": "alias(asPercent(sumSeries(stats.gauges.cadvisor.exchange-api-*.memory_working_set), 34359738368), 'RAM Total')",
+          "textEditor": true
+        },
+        {
+          "refId": "F",
+          "target": "alias(asPercent(stats.gauges.cadvisor.exchange-api-1.memory_working_set, 34359738368), 'RAM api-1')",
+          "textEditor": true
+        },
+        {
+          "refId": "G",
+          "target": "alias(asPercent(stats.gauges.cadvisor.exchange-api-2.memory_working_set, 34359738368), 'RAM api-2')",
+          "textEditor": true
+        },
+        {
+          "refId": "H",
+          "target": "alias(asPercent(stats.gauges.cadvisor.exchange-api-3.memory_working_set, 34359738368), 'RAM api-3')",
+          "textEditor": true
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "CPU + RAM Total (3 instancias combinadas)",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "percent",
+          "label": "% CPU",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "percent",
+          "label": "% RAM",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
           "show": true
         }
       ],
