@@ -20,7 +20,7 @@ app.use(express.json());
 
 const globalLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 3000,
+  max: 60000,
   message: { error: 'Too many requests' }
 });
 
@@ -28,19 +28,19 @@ app.use(globalLimiter)
 
 const getLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 1800,
+  max: 36000,
   message: { error: 'Too many requests' }
 });
 
 const putLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 600,
+  max: 12000,
   message: { error: 'Too many requests' }
 });
 
 const postLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 1200,
+  max: 24000,
   message: { error: 'Too many requests' }
 });
 
