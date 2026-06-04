@@ -11,6 +11,8 @@ import {
   exchange,
 } from "./exchange.js";
 
+import rateLimit from "express-rate-limit";
+
 const STATSD_HOST = process.env.STATSD_HOST || "graphite";
 const STATSD_PORT = 8125;
 
@@ -27,13 +29,39 @@ const port = 3000;
 
 app.use(express.json());
 
+const globalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60000,
+  message: { error: 'Too many requests' }
+});
+
+app.use(globalLimiter)
+
+const getLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 36000,
+  message: { error: 'Too many requests' }
+});
+
+const putLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 12000,
+  message: { error: 'Too many requests' }
+});
+
+const postLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 24000,
+  message: { error: 'Too many requests' }
+});
+
 // ACCOUNT endpoints
 
-app.get("/accounts", async (req, res) => {
+app.get("/accounts", getLimiter, async (req, res) => {
   res.json(await getAccounts());
 });
 
-app.put("/accounts/:id/balance", async (req, res) => {
+app.put("/accounts/:id/balance", putLimiter, async (req, res) => {
   const accountId = req.params.id;
   const { balance } = req.body;
 
@@ -47,11 +75,11 @@ app.put("/accounts/:id/balance", async (req, res) => {
 
 // RATE endpoints
 
-app.get("/rates", async (req, res) => {
+app.get("/rates", getLimiter, async (req, res) => {
   res.json(await getRates());
 });
 
-app.put("/rates", async (req, res) => {
+app.put("/rates", putLimiter, async (req, res) => {
   const { baseCurrency, counterCurrency, rate } = req.body;
 
   if (!baseCurrency || !counterCurrency || !rate) {
@@ -64,13 +92,12 @@ app.put("/rates", async (req, res) => {
 
 // LOG endpoint
 
-app.get("/log", async (req, res) => {
+app.get("/log", getLimiter, async (req, res) => {
   res.json(await getLog());
 });
 
 // EXCHANGE endpoint
-
-app.post("/exchange", async (req, res) => {
+app.post("/exchange", postLimiter, async (req, res) => {
   const {
     baseCurrency,
     counterCurrency,
