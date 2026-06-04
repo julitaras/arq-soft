@@ -69,35 +69,39 @@ export async function exchange(exchangeRequest) {
     obs: null,
   };
 
-  if (counterAccount.balance >= counterAmount) {
-    const [t1, t2] = await Promise.all([
-      transfer(clientBaseAccountId, baseAccount.id, baseAmount),
-      transfer(counterAccount.id, clientCounterAccountId, counterAmount),
-    ]);
-    if (t1 && t2) {
-        const { ok } = await atomicFundsTransfer(
-          baseCurrency, counterCurrency, baseAmount, counterAmount
-        );
-        if (ok) {
-          exchangeResult.ok = true;
-          exchangeResult.counterAmount = counterAmount;
+    const { ok: reserved } = await atomicFundsTransfer(
+        baseCurrency, counterCurrency, baseAmount, counterAmount
+    );
+
+    if (!reserved) {
+        exchangeResult.obs = "Not enough funds on counter currency account";
+        await appendLog(exchangeResult);
+        return exchangeResult;
+    }
+
+    if (await transfer(clientBaseAccountId, baseAccount.id, baseAmount)) {
+        if (
+            await transfer(counterAccount.id, clientCounterAccountId, counterAmount)
+        ) {
+            // Both transfers succeeded
+            exchangeResult.ok = true;
+            exchangeResult.counterAmount = counterAmount;
         } else {
-          await transfer(counterAccount.id, clientBaseAccountId, baseAmount);
-          exchangeResult.obs = "Not enough funds on counter currency account";
+            // Second transfer failed — rollback: reverse first transfer and release reservation
+            await transfer(baseAccount.id, clientBaseAccountId, baseAmount);
+            await atomicFundsTransfer(counterCurrency, baseCurrency, counterAmount, baseAmount);
+            exchangeResult.obs = "Could not transfer to clients' account";
         }
     } else {
-      exchangeResult.obs = "Could not complete transfers";
+        // First transfer failed — rollback: release reservation
+        await atomicFundsTransfer(counterCurrency, baseCurrency, counterAmount, baseAmount);
+        exchangeResult.obs = "Could not withdraw from clients' account";
     }
-  } else {
-    exchangeResult.obs = "Not enough funds on counter currency account";
-  }
-
-  await appendLog(exchangeResult);
-
-  return exchangeResult;
+    await appendLog(exchangeResult);
+    return exchangeResult;
 }
 
-async function transfer(fromAccountId, toAccountId, amount) {
+async function transfer() {
   const min = 200;
   const max = 400;
   return new Promise((resolve) =>
