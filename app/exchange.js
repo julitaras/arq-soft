@@ -79,23 +79,22 @@ export async function exchange(exchangeRequest) {
         return exchangeResult;
     }
 
-    if (await transfer(clientBaseAccountId, baseAccount.id, baseAmount)) {
-        if (
-            await transfer(counterAccount.id, clientCounterAccountId, counterAmount)
-        ) {
-            // Both transfers succeeded
-            exchangeResult.ok = true;
-            exchangeResult.counterAmount = counterAmount;
-        } else {
-            // Second transfer failed — rollback: reverse first transfer and release reservation
-            await transfer(baseAccount.id, clientBaseAccountId, baseAmount);
-            await atomicFundsTransfer(counterCurrency, baseCurrency, counterAmount, baseAmount);
-            exchangeResult.obs = "Could not transfer to clients' account";
-        }
+    const [t1, t2] = await Promise.all([
+        transfer(clientBaseAccountId, baseAccount.id, baseAmount),
+        transfer(counterAccount.id, clientCounterAccountId, counterAmount),
+    ]);
+
+    if (t1 && t2) {
+        // Both transfers succeeded
+        exchangeResult.ok = true;
+        exchangeResult.counterAmount = counterAmount;
     } else {
-        // First transfer failed — rollback: release reservation
+        // At least one transfer failed — release reservation
         await atomicFundsTransfer(counterCurrency, baseCurrency, counterAmount, baseAmount);
-        exchangeResult.obs = "Could not withdraw from clients' account";
+        // Reverse whichever individual transfer succeeded
+        if (t1) await transfer(baseAccount.id, clientBaseAccountId, baseAmount);
+        if (t2) await transfer(clientCounterAccountId, counterAccount.id, counterAmount);
+        exchangeResult.obs = "Could not complete transfers";
     }
     await appendLog(exchangeResult);
     return exchangeResult;
